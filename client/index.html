@@ -55,7 +55,18 @@
                         <option>10
                     </select>
                 </form>
+                <input type="button" id="cancel-room" value="Annuler" style="margin:15px auto 0 auto;">
                 <input type="button" id="validate-room" value="Valider" style="margin:15px auto 0 auto;">
+            </div>
+        </div>
+    </div>
+
+    <div id="waiting-modal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
+                <div>En attente de joueurs... (<span id="waiting-nbPlayers"></span> / <span
+                        id="waiting-maxPlayers"></span>)</div>
+                <input type="button" id="leave-room" value="Sortir de la salle" style="margin:15px auto 0 auto;">
             </div>
         </div>
     </div>
@@ -75,6 +86,7 @@
         // Connexion à socket.io
         var socket = io.connect('http://localhost:8080');
         var pseudo;
+        var roomName = "";
 
         // Add a listener to validate the username
         document.getElementById('validate-pseudo').onclick = validatePseudo;
@@ -108,22 +120,50 @@
             var inputRoom = document.getElementById('room-modal-name');
             var roomError = document.getElementById('room-modal-name-error');
             var maxPlayers = document.getElementById('room-modal-nb').value;
-            
-            var name = nl2br(htmlEntities(inputRoom.value));
-            
-            if (name.length < 2) {
+
+            roomName = nl2br(htmlEntities(inputRoom.value));
+
+            if (roomName.length < 2) {
                 if (!inputRoom.classList.contains('is-invalid'))
-                inputRoom.classList.add('is-invalid');
+                    inputRoom.classList.add('is-invalid');
                 roomError.style.display = "block";
                 return;
             }
-            
-            
+
+
             document.getElementById('room-modal').style.display = "none";
-            
-            socket.emit('create-room', name, maxPlayers);
-            
-            addRoom(name, 1, maxPlayers);
+
+            socket.emit('create-room', roomName, maxPlayers);
+
+            addRoom(roomName, 1, maxPlayers);
+
+            waitingRoom(1, maxPlayers);
+        }
+
+        // Add a listener to validate the username
+        document.getElementById('cancel-room').onclick = cancelRoom;
+
+        /**
+         * Validate the login formular and emit a signal to the socket
+         */
+        function cancelRoom() {
+            document.getElementById('room-modal').style.display = "none";
+        }
+
+        // Add a listener to validate the username
+        document.getElementById('leave-room').onclick = cancelRoom;
+
+        /**
+         * Validate the login formular and emit a signal to the socket
+         */
+        function cancelRoom() {
+            document.getElementById('waiting-modal').style.display = "none";
+        }
+
+        function waitingRoom(nbPlayers, maxPlayers) {
+            document.getElementById('waiting-modal').style.display = "block";
+            document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
+            document.getElementById('waiting-maxPlayers').innerHTML = maxPlayers;
         }
 
         /**
@@ -153,10 +193,13 @@
         }
 
         function joinRoom(name) {
+            roomName = name;
             let nbPlayers = parseInt($("#rooms #" + name + " #nbPlayers").text());
             let maxPlayers = parseInt($("#rooms #" + name + " #maxPlayers").text());
-            if (nbPlayers + 1 < maxPlayers)
+            if (nbPlayers + 1 < maxPlayers) {
                 updateRoom(name, parseInt(nbPlayers) + 1);
+                waitingRoom(nbPlayers + 1, maxPlayers);
+            }
             else
                 removeRoom(name);
             socket.emit('join-room', name);
@@ -168,6 +211,9 @@
 
         function updateRoom(name, nbPlayers) {
             $("#rooms #" + name + " #nbPlayers").html(nbPlayers);
+            if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
+                document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
+
         }
 
         socket.on('remove-room', function (data) {
