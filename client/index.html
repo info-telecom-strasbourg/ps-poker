@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="public/main.css"> -->
+
+    <meta charset="utf-8" />
+
+    <style type="text/css">
+        #connection {
+            display: block;
+        }
+    </style>
+
+    <title>PSPoker</title>
+</head>
+
+<body>
+    <h1>PSPoker</h1>
+
+    <div id="connection" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
+                <label for="pseudo">Pseudo</label>
+                <input type="text" id="pseudo">
+                <span id="pseudo-error" class="invalid-feedback" role="alert" style="display: none;">
+                    <strong>Votre pseudo doit faire au moins 2 caractères</strong>
+                </span>
+                <input type="button" id="validate-pseudo" value="Valider" style="margin:15px auto 0 auto;">
+            </div>
+        </div>
+    </div>
+
+    <div id="room-modal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
+                <label for="room-name-modal">Nom de la salle</label>
+                <input type="text" id="room-modal-name">
+                <span id="room-modal-name-error" class="invalid-feedback" role="alert" style="display: none;">
+                    <strong>Le nom de votre salle doit faire au moins 2 caractères</strong>
+                </span>
+                <label for="room-modal">Nombre de joueurs</label>
+                <form>
+                    <select id="room-modal-nb" size="1">
+                        <option selected>1
+                        <option>2
+                        <option>3
+                        <option>4
+                        <option>5
+                        <option>6
+                        <option>7
+                        <option>8
+                        <option>9
+                        <option>10
+                    </select>
+                </form>
+                <input type="button" id="validate-room" value="Valider" style="margin:15px auto 0 auto;">
+            </div>
+        </div>
+    </div>
+
+
+
+    <button onclick="createRoom()">CREATION SALLE</button>
+
+    <section id="rooms">
+    </section>
+
+
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Connexion à socket.io
+        var socket = io.connect('http://localhost:8080');
+        var pseudo;
+
+        // Add a listener to validate the username
+        document.getElementById('validate-pseudo').onclick = validatePseudo;
+
+        /**
+         * Validate the login formular and emit a signal to the socket
+         */
+        function validatePseudo() {
+            var inputPseudo = document.getElementById('pseudo');
+            var pseudoError = document.getElementById('pseudo-error');
+            pseudo = nl2br(htmlEntities(inputPseudo.value));
+
+            if (pseudo.length < 2) {
+                if (!inputPseudo.classList.contains('is-invalid'))
+                    inputPseudo.classList.add('is-invalid');
+                pseudo.style.display = "block";
+                return;
+            }
+            document.getElementById('connection').style.display = "none";
+
+            socket.emit('newClient', pseudo);
+        }
+
+        // Add a listener to validate the username
+        document.getElementById('validate-room').onclick = validateRoom;
+
+        /**
+         * Validate the login formular and emit a signal to the socket
+         */
+        function validateRoom() {
+            var inputRoom = document.getElementById('room-modal-name');
+            var roomError = document.getElementById('room-modal-name-error');
+            var maxPlayers = document.getElementById('room-modal-nb').value;
+            
+            var name = nl2br(htmlEntities(inputRoom.value));
+            
+            if (name.length < 2) {
+                if (!inputRoom.classList.contains('is-invalid'))
+                inputRoom.classList.add('is-invalid');
+                roomError.style.display = "block";
+                return;
+            }
+            
+            
+            document.getElementById('room-modal').style.display = "none";
+            
+            socket.emit('create-room', name, maxPlayers);
+            
+            addRoom(name, 1, maxPlayers);
+        }
+
+        /**
+         * Convert all "\n" or "\r\n" or "\r" to "<br>" in a string.
+         * 
+         * @param str: the string that will be modified.
+         * @return the string without the characters specified and with the <br>
+         */
+        function nl2br(str) {
+            return str.replace(/(\r\n|\r|\n)/g, '<br>');
+        }
+
+        function htmlEntities(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function createRoom() {
+            document.getElementById('room-modal').style.display = "block";
+        }
+
+        socket.on('new-room', function (data) {
+            addRoom(data.name, data.nbPlayers, data.maxPlayers);
+        })
+
+        function addRoom(name, nbPlayers, maxPlayers) {
+            $('#rooms').prepend('<div id="' + name + '">' + name + '<span id = nbPlayers>' + nbPlayers + '</span>' + "/" + '<span id = maxPlayers>' + maxPlayers + '</span>' + '<button onclick="joinRoom(\'' + name + '\')">JOINDRE SALLE</button>' + '<div>');
+        }
+
+        function joinRoom(name) {
+            let nbPlayers = parseInt($("#rooms #" + name + " #nbPlayers").text());
+            let maxPlayers = parseInt($("#rooms #" + name + " #maxPlayers").text());
+            if (nbPlayers + 1 < maxPlayers)
+                updateRoom(name, parseInt(nbPlayers) + 1);
+            else
+                removeRoom(name);
+            socket.emit('join-room', name);
+        }
+
+        socket.on('update-room', function (data) {
+            updateRoom(data.name, data.nbPlayers);
+        })
+
+        function updateRoom(name, nbPlayers) {
+            $("#rooms #" + name + " #nbPlayers").html(nbPlayers);
+        }
+
+        socket.on('remove-room', function (data) {
+            removeRoom(data.name);
+        })
+
+        function removeRoom(name) {
+            $("#rooms #" + name).remove();
+        }
+
+
+    </script>
+</body>
+
+</html>

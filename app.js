@@ -5,7 +5,7 @@ var app = require('express')(),
 
 // Chargement de la page index.html
 app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/client/index.html');
 });
 
 let rooms = [];
@@ -41,7 +41,7 @@ io.sockets.on('connection', function (socket) {
             if (rooms[i].name == name)
             {
                 rooms[i].players.push(socket);
-                if (rooms[i].players.length + 1 < rooms[i].maxPlayers)
+                if (rooms[i].players.length < rooms[i].maxPlayers)
                     socket.broadcast.emit('update-room', {name: name, nbPlayers: rooms[i].players.length});
                 else
                     socket.broadcast.emit('remove-room', {name: name});
