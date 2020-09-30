@@ -40,11 +40,13 @@
                 <span id="room-modal-name-error" class="invalid-feedback" role="alert" style="display: none;">
                     <strong>Le nom de votre salle doit faire au moins 2 caractères</strong>
                 </span>
+                <span id="room-modal-name-error2" class="invalid-feedback" role="alert" style="display: none;">
+                    <strong>Le nom de votre salle est déjà pris</strong>
+                </span>
                 <label for="room-modal">Nombre de joueurs</label>
                 <form>
                     <select id="room-modal-nb" size="1">
-                        <option selected>1
-                        <option>2
+                        <option selected>2
                         <option>3
                         <option>4
                         <option>5
@@ -118,8 +120,25 @@
          */
         function validateRoom() {
             var inputRoom = document.getElementById('room-modal-name');
+           
+            socket.emit('validate-room-name', inputRoom.value);
+        }
+
+        socket.on('response-room-name', function (data) {
+            var inputRoom = document.getElementById('room-modal-name');
             var roomError = document.getElementById('room-modal-name-error');
+            var roomError2 = document.getElementById('room-modal-name-error2');
             var maxPlayers = document.getElementById('room-modal-nb').value;
+
+            if (!data.response)
+            {
+                roomError.style.display = "none";
+                if (!inputRoom.classList.contains('is-invalid'))
+                    inputRoom.classList.add('is-invalid');
+                roomError2.style.display = "block";
+                return;
+            }
+            roomError2.style.display = "none";
 
             roomName = nl2br(htmlEntities(inputRoom.value));
 
@@ -130,6 +149,7 @@
                 return;
             }
 
+            roomError.style.display = "none";
 
             document.getElementById('room-modal').style.display = "none";
 
@@ -138,7 +158,7 @@
             addRoom(roomName, 1, maxPlayers);
 
             waitingRoom(1, maxPlayers);
-        }
+        })
 
         // Add a listener to validate the username
         document.getElementById('cancel-room').onclick = cancelRoom;
@@ -151,13 +171,22 @@
         }
 
         // Add a listener to validate the username
-        document.getElementById('leave-room').onclick = cancelRoom;
+        document.getElementById('leave-room').onclick = leaveRoom;
 
         /**
          * Validate the login formular and emit a signal to the socket
          */
-        function cancelRoom() {
+        function leaveRoom() {
             document.getElementById('waiting-modal').style.display = "none";
+            let nbPlayers = parseInt($("#rooms #" + roomName + " #nbPlayers").text());
+            if (nbPlayers - 1 == 0) {
+                removeRoom(roomName)
+                socket.emit('destroy-room', roomName);
+            }
+            else {
+                updateRoom(roomName, nbPlayers - 1);
+                socket.emit('leave-room', roomName);
+            }
         }
 
         function waitingRoom(nbPlayers, maxPlayers) {
@@ -221,6 +250,8 @@
         })
 
         function removeRoom(name) {
+            if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
+                document.getElementById('waiting-modal').style.display = "none";
             $("#rooms #" + name).remove();
         }
 
