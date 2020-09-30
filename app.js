@@ -40,11 +40,6 @@ io.sockets.on('connection', function (socket) {
     });
 
 
-    socket.on('new-room', function (info) {
-        info = ent.encode(info);
-        socket.broadcast.emit('info', { pseudo: socket.pseudo, info: info });
-    });
-
     socket.on('join-room', function (name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {

@@ -82,8 +82,8 @@
 
 
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-
     <script src="/socket.io/socket.io.js"></script>
+
     <script>
         // Connexion à socket.io
         var socket = io.connect('http://localhost:8080');
@@ -120,7 +120,7 @@
          */
         function validateRoom() {
             var inputRoom = document.getElementById('room-modal-name');
-           
+
             socket.emit('validate-room-name', inputRoom.value);
         }
 
@@ -130,8 +130,7 @@
             var roomError2 = document.getElementById('room-modal-name-error2');
             var maxPlayers = document.getElementById('room-modal-nb').value;
 
-            if (!data.response)
-            {
+            if (!data.response) {
                 roomError.style.display = "none";
                 if (!inputRoom.classList.contains('is-invalid'))
                     inputRoom.classList.add('is-invalid');
@@ -173,12 +172,20 @@
         // Add a listener to validate the username
         document.getElementById('leave-room').onclick = leaveRoom;
 
+
+        function parseName(name) {
+            var name = name.split(' ').join('_');
+            name = name.split('\"').join('\\\"');
+            name = name.split('\'').join('\\\'');
+            return name;
+        }
         /**
          * Validate the login formular and emit a signal to the socket
          */
         function leaveRoom() {
+            var correctedName = parseName(roomName);
             document.getElementById('waiting-modal').style.display = "none";
-            let nbPlayers = parseInt($("#rooms #" + roomName + " #nbPlayers").text());
+            let nbPlayers = parseInt($("#rooms #" + correctedName + " #nbPlayers").text());
             if (nbPlayers - 1 == 0) {
                 removeRoom(roomName)
                 socket.emit('destroy-room', roomName);
@@ -218,13 +225,15 @@
         })
 
         function addRoom(name, nbPlayers, maxPlayers) {
-            $('#rooms').prepend('<div id="' + name + '">' + name + '<span id = nbPlayers>' + nbPlayers + '</span>' + "/" + '<span id = maxPlayers>' + maxPlayers + '</span>' + '<button onclick="joinRoom(\'' + name + '\')">JOINDRE SALLE</button>' + '<div>');
+            var correctedName = parseName(name);
+            $('#rooms').prepend('<div id="' + correctedName + '">' + name + '<span id = nbPlayers>' + nbPlayers + '</span>' + "/" + '<span id = maxPlayers>' + maxPlayers + '</span>' + '<button onclick="joinRoom(\'' + name + '\')">JOINDRE SALLE</button>' + '<div>');
         }
 
         function joinRoom(name) {
             roomName = name;
-            let nbPlayers = parseInt($("#rooms #" + name + " #nbPlayers").text());
-            let maxPlayers = parseInt($("#rooms #" + name + " #maxPlayers").text());
+            var correctedName = parseName(name);
+            let nbPlayers = parseInt($("#rooms #" + correctedName + " #nbPlayers").text());
+            let maxPlayers = parseInt($("#rooms #" + correctedName + " #maxPlayers").text());
             if (nbPlayers + 1 < maxPlayers) {
                 updateRoom(name, parseInt(nbPlayers) + 1);
                 waitingRoom(nbPlayers + 1, maxPlayers);
@@ -239,7 +248,8 @@
         })
 
         function updateRoom(name, nbPlayers) {
-            $("#rooms #" + name + " #nbPlayers").html(nbPlayers);
+            var correctedName = parseName(name);
+            $("#rooms #" + correctedName + " #nbPlayers").html(nbPlayers);
             if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
                 document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
 
@@ -250,9 +260,10 @@
         })
 
         function removeRoom(name) {
+            var correctedName = parseName(name);
             if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
                 document.getElementById('waiting-modal').style.display = "none";
-            $("#rooms #" + name).remove();
+            $("#rooms #" + correctedName).remove();
         }
 
 
