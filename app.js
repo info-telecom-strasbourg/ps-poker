@@ -1,38 +1,44 @@
-var app = require('express')(),
+var express = require('express'),
+    app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
     ent = require('ent'); // Protects against html inserts
 
+app.use(express.static(__dirname + '/client'));
 // Load the page index.html
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
+
+
 // Array of rooms
 let rooms = [];
 
-// When a clien is connected
+// Handle a client connection
 io.sockets.on('connection', function (socket) {
-    // Listener to get the client pseudo and communicate to this client all the rooms that already exist in the array of rooms
+    /* Listener to get the client pseudo and gives him all the
+    rooms that already exist */
     socket.on('newClient', function (pseudo) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
         for (let i = 0; i < rooms.length; i++)
-            socket.emit('new-room', { name: rooms[i].name, nbPlayers: rooms[i].players.length, maxPlayers: rooms[i].maxPlayers });
+            socket.emit('new-room', { room: rooms[i] });
     });
 
-    // Listener to validate a room name (check that this room name is not in the array of rooms) and communicate it to the creator
+    /* Listener to validate a room name (check that this room name is not in the
+       array of rooms) and communicate it to the creator */
     socket.on('validate-room-name', function (name) {
-        for (let i = 0; i < rooms.length; i++) {
+        for (let i = 0; i < rooms.length; i++)
             if (rooms[i].name == name) {
                 socket.emit('response-room-name', { response: false });
                 return;
             }
-        }
         socket.emit('response-room-name', { response: true });
     });
 
-    // Listener to add a room in the array of rooms and communicate this room to the other clients
+    /* Listener to add a room in the array of rooms and communicate this room to
+       the other clients */
     socket.on('create-room', function (name, maxPlayers) {
         name = ent.encode(name);
         maxPlayers = ent.encode(maxPlayers);
