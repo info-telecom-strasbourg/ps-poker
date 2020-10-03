@@ -1,18 +1,19 @@
 var app = require('express')(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
-    ent = require('ent'); // Permet de bloquer les caractères HTML (sécurité équivalente à htmlentities en PHP)
+    ent = require('ent'); // Protects against html inserts
 
-// Chargement de la page index.html
+// Load the page index.html
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
+// Array of rooms
 let rooms = [];
 
-
+// When a clien is connected
 io.sockets.on('connection', function (socket) {
-    // Dès qu'on nous donne un pseudo, on le stocke en variable de session et on informe les autres personnes
+    // Listener to get the client pseudo and communicate to this client all the rooms that already exist in the array of rooms
     socket.on('newClient', function (pseudo) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
@@ -20,6 +21,7 @@ io.sockets.on('connection', function (socket) {
             socket.emit('new-room', { name: rooms[i].name, nbPlayers: rooms[i].players.length, maxPlayers: rooms[i].maxPlayers });
     });
 
+    // Listener to validate a room name (check that this room name is not in the array of rooms) and communicate it to the creator
     socket.on('validate-room-name', function (name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
@@ -30,6 +32,7 @@ io.sockets.on('connection', function (socket) {
         socket.emit('response-room-name', { response: true });
     });
 
+    // Listener to add a room in the array of rooms and communicate this room to the other clients
     socket.on('create-room', function (name, maxPlayers) {
         name = ent.encode(name);
         maxPlayers = ent.encode(maxPlayers);
@@ -39,7 +42,7 @@ io.sockets.on('connection', function (socket) {
         socket.broadcast.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
     });
 
-
+    // Listener to add a client in a room in the array of rooms and communicate it to the other clients
     socket.on('join-room', function (name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
@@ -56,7 +59,7 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
-
+    // Listener to remove a client in a room in the array of rooms and communicate it to the other clients
     socket.on('leave-room', function (name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
@@ -72,6 +75,7 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
+    // Listener to remove a room from the array of rooms and communicate to the other clients
     socket.on('destroy-room', function (name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
@@ -84,6 +88,7 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
+    // Listener to remove a client in a room in the array of rooms because of a disconnection and communicate it to the other clients
     socket.on('disconnect', function () {
         for (let i = 0; i < rooms.length; i++) {
             let index = rooms[i].players.indexOf(socket);

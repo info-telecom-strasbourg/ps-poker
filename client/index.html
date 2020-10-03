@@ -19,6 +19,7 @@
 <body>
     <h1>PSPoker</h1>
 
+    <!-- Modal to ask the client to give his pseudo -->
     <div id="connection" class="modal">
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
@@ -32,6 +33,7 @@
         </div>
     </div>
 
+    <!-- Modal to ask the client for the name and number of players in the room -->
     <div id="room-modal" class="modal">
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
@@ -63,6 +65,7 @@
         </div>
     </div>
 
+    <!-- Modal for waiting for a client before starting a game -->
     <div id="waiting-modal" class="modal">
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
@@ -73,10 +76,10 @@
         </div>
     </div>
 
-
-
+    <!-- Button to create a room -->
     <button onclick="createRoom()">CREATION SALLE</button>
 
+    <!-- List of rooms -->
     <section id="rooms">
     </section>
 
@@ -85,16 +88,20 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
-        // Connexion à socket.io
+        // Connection to socket.io
         var socket = io.connect('http://localhost:8080');
+
+        // Pseudo of the client
         var pseudo;
+
+        // Room in which the client is
         var roomName = "";
 
-        // Add a listener to validate the username
+        // Listener to validate the client pseudo (formular)
         document.getElementById('validate-pseudo').onclick = validatePseudo;
 
         /**
-         * Validate the login formular and emit a signal to the socket
+         * Validate the pseudo and emit a signal to communicate there is a new client
          */
         function validatePseudo() {
             var inputPseudo = document.getElementById('pseudo');
@@ -112,11 +119,11 @@
             socket.emit('newClient', pseudo);
         }
 
-        // Add a listener to validate the username
+        // Listener to validate the creation of the room (formular)
         document.getElementById('validate-room').onclick = validateRoom;
 
         /**
-         * Validate the login formular and emit a signal to the socket
+         * Emit a signal to validate the room name during the creation of a room
          */
         function validateRoom() {
             var inputRoom = document.getElementById('room-modal-name');
@@ -124,6 +131,8 @@
             socket.emit('validate-room-name', inputRoom.value);
         }
 
+        // Listener to validate a room name if it can be used, emit a signal to communicate that the room 
+        // is created and puts the client on hold
         socket.on('response-room-name', function (data) {
             var inputRoom = document.getElementById('room-modal-name');
             var roomError = document.getElementById('room-modal-name-error');
@@ -159,17 +168,33 @@
             waitingRoom(1, maxPlayers);
         })
 
-        // Add a listener to validate the username
+        /**
+         * Create a room
+         */
+        function createRoom() {
+            document.getElementById('room-modal').style.display = "block";
+        }
+
+        /**
+         * Puts the client on hold
+         */
+        function waitingRoom(nbPlayers, maxPlayers) {
+            document.getElementById('waiting-modal').style.display = "block";
+            document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
+            document.getElementById('waiting-maxPlayers').innerHTML = maxPlayers;
+        }
+
+        // Listener to cancel the creation of a room
         document.getElementById('cancel-room').onclick = cancelRoom;
 
         /**
-         * Validate the login formular and emit a signal to the socket
+         * Cancel the creation of a room
          */
         function cancelRoom() {
             document.getElementById('room-modal').style.display = "none";
         }
 
-        // Add a listener to validate the username
+        // Listener to leave a room
         document.getElementById('leave-room').onclick = leaveRoom;
 
 
@@ -179,8 +204,9 @@
             name = name.split('\'').join('\\\'');
             return name;
         }
+
         /**
-         * Validate the login formular and emit a signal to the socket
+         * Takes the client out of the room and emit a signal to communicate it to the others
          */
         function leaveRoom() {
             var correctedName = parseName(roomName);
@@ -196,39 +222,29 @@
             }
         }
 
-        function waitingRoom(nbPlayers, maxPlayers) {
-            document.getElementById('waiting-modal').style.display = "block";
-            document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
-            document.getElementById('waiting-maxPlayers').innerHTML = maxPlayers;
-        }
 
-        /**
-         * Convert all "\n" or "\r\n" or "\r" to "<br>" in a string.
-         * 
-         * @param str: the string that will be modified.
-         * @return the string without the characters specified and with the <br>
-         */
-        function nl2br(str) {
-            return str.replace(/(\r\n|\r|\n)/g, '<br>');
-        }
-
-        function htmlEntities(str) {
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        function createRoom() {
-            document.getElementById('room-modal').style.display = "block";
-        }
-
+        // Listener to add a room in the list of rooms if a new room has been created
         socket.on('new-room', function (data) {
             addRoom(data.name, data.nbPlayers, data.maxPlayers);
         })
 
+        /**
+         * Add a room in the list of rooms
+         * 
+         * @param name: name of the room
+         * @param nbPlayers: current number of players in the room
+         * @param maxPlayers: number of players to start the game
+         */
         function addRoom(name, nbPlayers, maxPlayers) {
             var correctedName = parseName(name);
             $('#rooms').prepend('<div id="' + correctedName + '">' + name + '<span id = nbPlayers>' + nbPlayers + '</span>' + "/" + '<span id = maxPlayers>' + maxPlayers + '</span>' + '<button onclick="joinRoom(\'' + name + '\')">JOINDRE SALLE</button>' + '<div>');
         }
 
+        /**
+         * Join a room in the list of rooms
+         * 
+         * @param name: name of the room
+         */
         function joinRoom(name) {
             roomName = name;
             var correctedName = parseName(name);
@@ -243,10 +259,17 @@
             socket.emit('join-room', name);
         }
 
+        // Listerner to update a room if someone entered or left a room
         socket.on('update-room', function (data) {
             updateRoom(data.name, data.nbPlayers);
         })
 
+        /**
+         * Update a room if someone entered or left a room
+         * 
+         * @param name: name of the room
+         * @param nbPlayers: current number of players in the room
+         */
         function updateRoom(name, nbPlayers) {
             var correctedName = parseName(name);
             $("#rooms #" + correctedName + " #nbPlayers").html(nbPlayers);
@@ -255,10 +278,16 @@
 
         }
 
+        // Listerner to supress a room in the list of rooms
         socket.on('remove-room', function (data) {
             removeRoom(data.name);
         })
 
+        /**
+         * Supress a room in the list of rooms
+         * 
+         * @param name: name of the room
+         */
         function removeRoom(name) {
             var correctedName = parseName(name);
             if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
@@ -266,6 +295,25 @@
             $("#rooms #" + correctedName).remove();
         }
 
+        /**
+         * Convert all "\n" or "\r\n" or "\r" to "<br>" in a string.
+         * 
+         * @param str: the string that will be modified
+         * @return the string without the characters specified and with the <br>
+         */
+        function nl2br(str) {
+            return str.replace(/(\r\n|\r|\n)/g, '<br>');
+        }
+
+        /**
+         * Protects against html inserts
+         * 
+         * @param str: the string that will be modified
+         * @return the string without the html inserts
+         */
+        function htmlEntities(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
 
     </script>
 </body>
