@@ -116,4 +116,9 @@ io.sockets.on('connection', function (socket) {
     });
 });
 
+<<<<<<< HEAD
 server.listen(8080);
+=======
+// The server listen on the 8080 port
+server.listen(8080);
+>>>>>>> f1c440a4d3c41ca08ffe6b78119bf4c7a1fb50cf
