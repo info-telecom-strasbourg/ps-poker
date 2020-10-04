@@ -91,14 +91,10 @@ function leaveRoom() {
     var correctedName = parseName(roomName);
     document.getElementById('waiting-modal').style.display = "none";
     let nbPlayers = parseInt($("#rooms #" + correctedName + " #nbPlayers").text());
-    if (nbPlayers - 1 == 0) {
-        removeRoom(roomName)
+    if (nbPlayers - 1 == 0)
         socket.emit('destroy-room', roomName);
-    }
-    else {
-        updateRoom(roomName, nbPlayers - 1);
+    else
         socket.emit('leave-room', roomName);
-    }
 }
 
 
