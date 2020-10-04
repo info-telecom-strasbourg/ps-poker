@@ -23,7 +23,9 @@ io.sockets.on('connection', function (socket) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
         for (let i = 0; i < rooms.length; i++)
-            socket.emit('new-room', { room: rooms[i] });
+            socket.emit('new-room', { name: rooms[i].name,
+									  maxPlayers: rooms[i].maxPlayers,
+								   	  nbPlayers: rooms[i].players.length});
     });
 
     /* Listener to validate a room name (check that this room name is not in the

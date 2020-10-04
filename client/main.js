@@ -31,15 +31,14 @@ function validateRoom() {
     document.getElementById('room-modal-name-error2').style.display = "none";
     var inputRoom = document.getElementById('room-modal-name');
     var maxPlayers = document.getElementById('room-modal-nb').value;
-    if(inputRoom.value.length < 2) {
+    
+    if(inputRoom.value.length < 2)
       document.getElementById('room-modal-name-error').style.display = "block";
-      return;
-    }
-    else
+    else {
       document.getElementById('room-modal-name-error').style.display = "none";
-
-    socket.emit('validate-room-name', {name: inputRoom.value,
-                                       nbPlayer: maxPlayers});
+      socket.emit('validate-room-name', {name: inputRoom.value,
+        nbPlayer: maxPlayers});
+    }
 }
 
 // Listener to validate a room name if it can be used, emit a signal to communicate that the room
