@@ -28,7 +28,7 @@
                 <span id="pseudo-error" class="invalid-feedback" role="alert" style="display: none;">
                     <strong>Votre pseudo doit faire au moins 2 caractères</strong>
                 </span>
-                <input type="button" id="validate-pseudo" value="Valider" style="margin:15px auto 0 auto;">
+                <input type="button" id="validate-pseudo" value="Valider" onclick="validatePseudo()" style="margin:15px auto 0 auto;">
             </div>
         </div>
     </div>
@@ -59,8 +59,8 @@
                         <option>10
                     </select>
                 </form>
-                <input type="button" id="cancel-room" value="Annuler" style="margin:15px auto 0 auto;">
-                <input type="button" id="validate-room" value="Valider" style="margin:15px auto 0 auto;">
+                <input type="button" id="cancel-room" onclick="cancelRoom()" value="Annuler" style="margin:15px auto 0 auto;">
+                <input type="button" id="validate-room" onclick="validateRoom()" value="Valider" style="margin:15px auto 0 auto;">
             </div>
         </div>
     </div>
@@ -71,7 +71,7 @@
             <div class="modal-content" style="padding: 10px; display: flex; justify-content: center;">
                 <div>En attente de joueurs... (<span id="waiting-nbPlayers"></span> / <span
                         id="waiting-maxPlayers"></span>)</div>
-                <input type="button" id="leave-room" value="Sortir de la salle" style="margin:15px auto 0 auto;">
+                <input type="button" id="leave-room" onclick="leaveRoom()" value="Sortir de la salle" style="margin:15px auto 0 auto;">
             </div>
         </div>
     </div>

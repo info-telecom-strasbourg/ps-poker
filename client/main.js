@@ -7,21 +7,16 @@ var pseudo;
 // Room in which the client is
 var roomName = "";
 
-// Listener to validate the client pseudo (formular)
-document.getElementById('validate-pseudo').onclick = validatePseudo;
 
 /**
  * Validate the pseudo and emit a signal to communicate there is a new client
  */
 function validatePseudo() {
     var inputPseudo = document.getElementById('pseudo');
-    var pseudoError = document.getElementById('pseudo-error');
     pseudo = nl2br(htmlEntities(inputPseudo.value));
 
     if (pseudo.length < 2) {
-        if (!inputPseudo.classList.contains('is-invalid'))
-            inputPseudo.classList.add('is-invalid');
-        pseudo.style.display = "block";
+        document.getElementById('pseudo-error').style.display = "block";
         return;
     }
     document.getElementById('connection').style.display = "none";
@@ -29,53 +24,34 @@ function validatePseudo() {
     socket.emit('newClient', pseudo);
 }
 
-// Listener to validate the creation of the room (formular)
-document.getElementById('validate-room').onclick = validateRoom;
-
 /**
  * Emit a signal to validate the room name during the creation of a room
  */
 function validateRoom() {
+    document.getElementById('room-modal-name-error2').style.display = "none";
     var inputRoom = document.getElementById('room-modal-name');
+    var maxPlayers = document.getElementById('room-modal-nb').value;
+    if(inputRoom.value.length < 2) {
+      document.getElementById('room-modal-name-error').style.display = "block";
+      return;
+    }
+    else
+      document.getElementById('room-modal-name-error').style.display = "none";
 
-    socket.emit('validate-room-name', inputRoom.value);
+    socket.emit('validate-room-name', {name: inputRoom.value,
+                                       nbPlayer: maxPlayers});
 }
 
 // Listener to validate a room name if it can be used, emit a signal to communicate that the room
 // is created and puts the client on hold
 socket.on('response-room-name', function (data) {
-    var inputRoom = document.getElementById('room-modal-name');
-    var roomError = document.getElementById('room-modal-name-error');
-    var roomError2 = document.getElementById('room-modal-name-error2');
-    var maxPlayers = document.getElementById('room-modal-nb').value;
-
-    if (!data.response) {
-        roomError.style.display = "none";
-        if (!inputRoom.classList.contains('is-invalid'))
-            inputRoom.classList.add('is-invalid');
-        roomError2.style.display = "block";
-        return;
+    if (!data.response)
+        document.getElementById('room-modal-name-error2').style.display="block";
+    else
+    {
+      document.getElementById('room-modal').style.display = "none";
+      waitingRoom(data.nbPlayers, data.maxPlayers);
     }
-    roomError2.style.display = "none";
-
-    roomName = nl2br(htmlEntities(inputRoom.value));
-
-    if (roomName.length < 2) {
-        if (!inputRoom.classList.contains('is-invalid'))
-            inputRoom.classList.add('is-invalid');
-        roomError.style.display = "block";
-        return;
-    }
-
-    roomError.style.display = "none";
-
-    document.getElementById('room-modal').style.display = "none";
-
-    socket.emit('create-room', roomName, maxPlayers);
-
-    addRoom(roomName, 1, maxPlayers);
-
-    waitingRoom(1, maxPlayers);
 })
 
 /**
@@ -94,19 +70,12 @@ function waitingRoom(nbPlayers, maxPlayers) {
     document.getElementById('waiting-maxPlayers').innerHTML = maxPlayers;
 }
 
-// Listener to cancel the creation of a room
-document.getElementById('cancel-room').onclick = cancelRoom;
-
 /**
  * Cancel the creation of a room
  */
 function cancelRoom() {
     document.getElementById('room-modal').style.display = "none";
 }
-
-// Listener to leave a room
-document.getElementById('leave-room').onclick = leaveRoom;
-
 
 function parseName(name) {
     var name = name.split(' ').join('_');
@@ -185,7 +154,6 @@ function updateRoom(name, nbPlayers) {
     $("#rooms #" + correctedName + " #nbPlayers").html(nbPlayers);
     if (document.getElementById('waiting-modal').style.display == "block" && name == roomName)
         document.getElementById('waiting-nbPlayers').innerHTML = nbPlayers;
-
 }
 
 // Listerner to supress a room in the list of rooms

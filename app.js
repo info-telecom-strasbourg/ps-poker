@@ -28,23 +28,19 @@ io.sockets.on('connection', function (socket) {
 
     /* Listener to validate a room name (check that this room name is not in the
        array of rooms) and communicate it to the creator */
-    socket.on('validate-room-name', function (name) {
+    socket.on('validate-room-name', function (room) {
         for (let i = 0; i < rooms.length; i++)
-            if (rooms[i].name == name) {
+            if (rooms[i].name == room.name) {
                 socket.emit('response-room-name', { response: false });
                 return;
             }
-        socket.emit('response-room-name', { response: true });
-    });
-
-    /* Listener to add a room in the array of rooms and communicate this room to
-       the other clients */
-    socket.on('create-room', function (name, maxPlayers) {
-        name = ent.encode(name);
-        maxPlayers = ent.encode(maxPlayers);
+        var name = ent.encode(room.name);
+        maxPlayers = ent.encode(room.nbPlayer);
         let players = [socket];
         var room = { name: name, maxPlayers: maxPlayers, players: players };
         rooms.push(room);
+        socket.emit('response-room-name', { response: true, nbPlayers: players.length, maxPlayers: maxPlayers});
+        console.log("New room!!!");
         socket.broadcast.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
     });
 
