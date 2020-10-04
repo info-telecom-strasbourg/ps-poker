@@ -101,6 +101,7 @@ function leaveRoom() {
 // Listener to add a room in the list of rooms if a new room has been created
 socket.on('new-room', function (data) {
     addRoom(data.name, data.nbPlayers, data.maxPlayers);
+    roomName = data.name;
 })
 
 /**
