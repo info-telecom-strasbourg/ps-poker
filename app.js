@@ -106,4 +106,5 @@ io.sockets.on('connection', function (socket) {
     });
 });
 
+// The server listen on the 8080 port
 server.listen(8080);
