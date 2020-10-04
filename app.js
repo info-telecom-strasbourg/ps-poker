@@ -23,7 +23,7 @@ io.sockets.on('connection', function (socket) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
         for (let i = 0; i < rooms.length; i++)
-            socket.emit('new-room', { room: rooms[i] });
+            socket.emit('new-room', {name: rooms[i].name, nbPlayers: rooms[i].players.length, maxPlayers: rooms[i].maxPlayers});
     });
 
     /* Listener to validate a room name (check that this room name is not in the
@@ -39,7 +39,7 @@ io.sockets.on('connection', function (socket) {
         let players = [socket];
         var room = { name: name, maxPlayers: maxPlayers, players: players };
         rooms.push(room);
-        socket.emit('response-room-name', { response: true, nbPlayers: players.length, maxPlayers: maxPlayers});
+        socket.emit('response-room-name', { response: true, nbPlayers: players.length, maxPlayers: maxPlayers });
         socket.broadcast.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
         socket.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
     });
@@ -49,9 +49,9 @@ io.sockets.on('connection', function (socket) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
                 rooms[i].players.push(socket);
-                if (rooms[i].players.length < rooms[i].maxPlayers){
-                  socket.broadcast.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
-                  socket.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
+                if (rooms[i].players.length < rooms[i].maxPlayers) {
+                    socket.broadcast.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
+                    socket.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
 
                 }
                 else {
