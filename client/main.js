@@ -31,7 +31,7 @@ function validateRoom() {
     document.getElementById('room-modal-name-error2').style.display = "none";
     var inputRoom = document.getElementById('room-modal-name');
     var maxPlayers = document.getElementById('room-modal-nb').value;
-    
+
     if(inputRoom.value.length < 2)
       document.getElementById('room-modal-name-error').style.display = "block";
     else {
@@ -130,10 +130,7 @@ function joinRoom(name) {
         waitingRoom(nbPlayers + 1, maxPlayers);
     }
     else
-    {
         removeRoom(name);
-        socket.emit('ready-start-game', 0);
-    }
     socket.emit('join-room', name);
 }
 
@@ -174,6 +171,10 @@ function removeRoom(name) {
 
 socket.on('start-game', function (data) {
     document.location.href="/".concat(data.id.toString());
+});
+
+socket.on('redirect', function(destination){
+	window.location.href = destination;
 });
 
 

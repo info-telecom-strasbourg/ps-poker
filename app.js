@@ -15,6 +15,10 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
+// Load the page index.html
+app.get('/room', function (req, res) {
+    res.sendFile(__dirname + '/client/room.html');
+});
 
 
 
@@ -29,9 +33,8 @@ io.sockets.on('connection', function (socket) {
         app.get('/'.concat(i.toString()), function (req, res) {
             res.sendFile(__dirname + '/client/room.html');
         });
-        
     }
-  
+
 
     socket.on('newClient', function (pseudo) {
         pseudo = ent.encode(pseudo);
@@ -69,10 +72,10 @@ io.sockets.on('connection', function (socket) {
 
                 }
                 else {
+					rooms[i].players.forEach(element => element.emit('redirect', 'room'));
                     rooms.splice(i, 1);
                     socket.broadcast.emit('remove-room', { name: name });
                     socket.emit('remove-room', { name: name });
-                    socket.emit('ready-start-game', 0);
                 }
 
                 return;
@@ -126,13 +129,6 @@ io.sockets.on('connection', function (socket) {
             }
 
         }
-    });
-
-    // Listener to redirect the client in the room to start playing
-    socket.on('ready-start-game', function (id) {
-        for (let i = 0; i < rooms[id].players.length; i++)
-            rooms[id].players[i].emit('start-game', { id: id });
-        socket.emit('start-game', { id: id });
     });
 
 
