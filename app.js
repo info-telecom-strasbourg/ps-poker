@@ -6,6 +6,10 @@ var express = require('express'),
 
 app.use(express.static(__dirname + '/client'));
 app.use(express.static(__dirname + '/public'));
+
+// Array of rooms
+let rooms = [];
+
 // Load the page index.html
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/client/index.html');
@@ -13,18 +17,27 @@ app.get('/', function (req, res) {
 
 
 
-// Array of rooms
-let rooms = [];
+
 
 // Handle a client connection
 io.sockets.on('connection', function (socket) {
     /* Listener to get the client pseudo and gives him all the
     rooms that already exist */
+
+    for (let i = 0; i < rooms.length; i++)
+    {
+        app.get('/'.concat(i.toString()), function (req, res) {
+            res.sendFile(__dirname + '/client/room.html');
+        });
+        
+    }
+  
+
     socket.on('newClient', function (pseudo) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
         for (let i = 0; i < rooms.length; i++)
-            socket.emit('new-room', {name: rooms[i].name, nbPlayers: rooms[i].players.length, maxPlayers: rooms[i].maxPlayers});
+            socket.emit('new-room', { name: rooms[i].name, nbPlayers: rooms[i].players.length, maxPlayers: rooms[i].maxPlayers });
     });
 
     /* Listener to validate a room name (check that this room name is not in the
@@ -59,6 +72,7 @@ io.sockets.on('connection', function (socket) {
                     rooms.splice(i, 1);
                     socket.broadcast.emit('remove-room', { name: name });
                     socket.emit('remove-room', { name: name });
+                    socket.emit('ready-start-game', 0);
                 }
 
                 return;
@@ -113,6 +127,15 @@ io.sockets.on('connection', function (socket) {
 
         }
     });
+
+    // Listener to redirect the client in the room to start playing
+    socket.on('ready-start-game', function (id) {
+        for (let i = 0; i < rooms[id].players.length; i++)
+            rooms[id].players[i].emit('start-game', { id: id });
+        socket.emit('start-game', { id: id });
+    });
+
+
 });
 
 // The server listen on the 8080 port

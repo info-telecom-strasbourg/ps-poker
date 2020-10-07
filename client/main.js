@@ -130,7 +130,10 @@ function joinRoom(name) {
         waitingRoom(nbPlayers + 1, maxPlayers);
     }
     else
+    {
         removeRoom(name);
+        socket.emit('ready-start-game', 0);
+    }
     socket.emit('join-room', name);
 }
 
@@ -168,6 +171,12 @@ function removeRoom(name) {
         document.getElementById('waiting-modal').style.display = "none";
     $("#rooms #" + correctedName).remove();
 }
+
+socket.on('start-game', function (data) {
+    document.location.href="/".concat(data.id.toString());
+});
+
+
 
 /**
  * Convert all "\n" or "\r\n" or "\r" to "<br>" in a string.
