@@ -7,6 +7,11 @@ var express = require('express'),
 app.use(express.static(__dirname + '/client'));
 app.use(express.static(__dirname + '/public'));
 
+var id_room = new Uint16Array(1);
+id_room[0] = 0;
+for(;;)
+	console.log(id_room[0]++);
+
 // Array of rooms
 let rooms = [];
 
@@ -54,7 +59,7 @@ io.sockets.on('connection', function (socket) {
         var name = ent.encode(room.name);
         maxPlayers = ent.encode(room.nbPlayer);
         let players = [socket];
-        var room = { name: name, maxPlayers: maxPlayers, players: players };
+        var room = { id: id_room[0], name: name, maxPlayers: maxPlayers, players: players };
         rooms.push(room);
         socket.emit('response-room-name', { response: true, nbPlayers: players.length, maxPlayers: maxPlayers });
         socket.broadcast.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
