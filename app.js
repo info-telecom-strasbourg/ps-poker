@@ -9,8 +9,6 @@ app.use(express.static(__dirname + '/public'));
 
 var id_room = new Uint16Array(1);
 id_room[0] = 0;
-for(;;)
-	console.log(id_room[0]++);
 
 // Array of rooms
 let rooms = [];
@@ -82,7 +80,7 @@ io.sockets.on('connection', function (socket) {
                     socket.broadcast.emit('remove-room', { name: name });
                     socket.emit('remove-room', { name: name });
                 }
-
+                
                 return;
             }
         }
