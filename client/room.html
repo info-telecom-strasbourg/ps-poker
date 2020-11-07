@@ -3,6 +3,8 @@
 
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="room.css">
+
 
     <meta charset="utf-8" />
 
@@ -13,7 +15,48 @@
 <body>
     <h1>PSPoker</h1>
 
+    <div style="display: flex; width: 100%; top: 0; bottom: 0; position: absolute;">
+        <div id="score">
+
+        </div>
+        <div id="board">
+        </div>
+    </div>
+
 
 </body>
+
+<script type="text/javascript">
+    var nbPlayers = 4;
+    var widthCard = 71, heightCard = 96;
+    var board = document.getElementById('board');
+
+    function drawCards(x, y, eps = 0)
+    {
+        board.insertAdjacentHTML('beforeend', "<img src='/img/cards/back.png' alt='Back of the card' style='position: absolute; top: calc(" + y + "% - " + heightCard/2 + "px); left: calc(" + (20+0.8*x) + "% - " + (widthCard/2 - eps) + "px);'>");
+    }
+
+    function drawDoubleCards(x, y)
+    {
+        drawCards(x, y);
+        drawCards(x, y, 10);
+    }
+
+    if (nbPlayers == 4)
+    {
+        drawDoubleCards(50, 12);
+        drawDoubleCards(50, 60);
+        drawDoubleCards(12, 36);
+        drawDoubleCards(88, 36);
+
+        drawCards(38, 36);
+        drawCards(44, 36);
+        drawCards(50, 36);
+        drawCards(56, 36);
+        drawCards(62, 36);
+    }
+
+</script>
+
 
 </html>

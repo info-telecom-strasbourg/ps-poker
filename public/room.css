@@ -1,0 +1,11 @@
+#board {
+    background-color: green;
+    width: 80%;
+    height: 100%;
+}
+
+#score {
+    width: 20%;
+    height: 100%;
+}
+
