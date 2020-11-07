@@ -9,3 +9,11 @@
     height: 100%;
 }
 
+.action {
+    width: 15%;
+    height: 80px;
+    border-radius: 4%;
+    background-color: blue;
+    color: white;
+    border: none;
+}

@@ -19,7 +19,17 @@
         <div id="score">
 
         </div>
-        <div id="board">
+        <div id="board" style="display: flex; flex-direction: column; width: 100%;">
+            <div id="cards-content" style="height: 85%;">
+
+            </div>
+            <div id="actions" style="height: 15%; display: flex; justify-content: space-between; margin: 0 30px;">
+                <button class="action">Checker</button>
+                <button class="action">Miser</button>
+                <button class="action">Passer</button>
+                <button class="action">Suivre</button>
+                <button class="action">Relancer</button>
+            </div>
         </div>
     </div>
 
@@ -28,34 +38,31 @@
 
 <script type="text/javascript">
     var nbPlayers = 4;
-    var widthCard = 71, heightCard = 96;
-    var board = document.getElementById('board');
+    var widthCard = 71,
+        heightCard = 96;
+    var cardsContent = document.getElementById('cards-content');
 
-    function drawCards(x, y, eps = 0)
-    {
-        board.insertAdjacentHTML('beforeend', "<img src='/img/cards/back.png' alt='Back of the card' style='position: absolute; top: calc(" + y + "% - " + heightCard/2 + "px); left: calc(" + (20+0.8*x) + "% - " + (widthCard/2 - eps) + "px);'>");
+    function drawCard(x, y, card, eps = 0) {
+        cardsContent.insertAdjacentHTML('beforeend', "<img src='/img/cards/" + card + ".png' alt='Back of the card' style='position: absolute; top: calc(" + 0.85 * y + "% - " + heightCard / 2 + "px); left: calc(" + (20 + 0.8 * x) + "% - " + (widthCard / 2 - eps) + "px);'>");
     }
 
-    function drawDoubleCards(x, y)
-    {
-        drawCards(x, y);
-        drawCards(x, y, 10);
+    function drawDoubleCards(x, y, card1, card2) {
+        drawCard(x, y, card1);
+        drawCard(x, y, card2, 15);
     }
 
-    if (nbPlayers == 4)
-    {
-        drawDoubleCards(50, 12);
-        drawDoubleCards(50, 60);
-        drawDoubleCards(12, 36);
-        drawDoubleCards(88, 36);
+    if (nbPlayers == 4) {
+        drawDoubleCards(50, 12, "back", "back");
+        drawDoubleCards(50, 80, "Ah", "As");
+        drawDoubleCards(12, 46, "back", "back");
+        drawDoubleCards(88, 46, "back", "back");
 
-        drawCards(38, 36);
-        drawCards(44, 36);
-        drawCards(50, 36);
-        drawCards(56, 36);
-        drawCards(62, 36);
+        drawCard(38, 46, "back");
+        drawCard(44, 46, "back");
+        drawCard(50, 46, "back");
+        drawCard(56, 46, "back");
+        drawCard(62, 46, "back");
     }
-
 </script>
 
 
