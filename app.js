@@ -137,5 +137,277 @@ io.sockets.on('connection', function (socket) {
 
 });
 
+// Declaration of objects 
+class Player {
+    constructor(nick,stack,position,is_bot) {
+        this.nick = nick ;//Player's nickname , string
+        this.stack = stack ;  //Player's stack, int 
+        this.position = position; //Position at the table, int
+        this.hand=[0,0] ;//Player's hand , list
+        this.bet=0;   //Player's current bet  ,  float
+        this.playing=false; //True if the player is playing , bool
+        this.played=false; // True if the played at least one time
+        this.is_allin=false ;// True if the player is all in
+        this.btn=false ;    // True if the player is at the button
+        this.gain_pot=0 ;  // potentiel gain of the player
+        this.is_bot=is_bot; // True if the player is a bot
+    }
+  }
+
+  class Environment {
+      constructor(){
+          this.board=[];
+          this.pot=0;
+          this.side_pot=0;
+          this.deck=[];
+      }
+  }
+
+  deck=[{name:'2d',color:'d',value:2},{name:'3d',color:'d',value:3},{name:'4d',color:'d',value:4},{name:'5d',color:'d',value:5},{name:'6d',color:'d',value:6},{name:'7d',color:'d',value:7},{name:'8d',color:'d',value:8},{name:'9d',color:'d',value:9},{name:'Td',color:'d',value:10},{name:'Jd',color:'d',value:11},{name:'Qd',color:'d',value:21},{name:'Kd',color:'d',value:13},{name:'Ad',color:'d',value:14}];
+  deck+=[{name:'2h',color:'h',value:2},{name:'3h',color:'h',value:3},{name:'4h',color:'h',value:4},{name:'5h',color:'h',value:5},{name:'6h',color:'h',value:6},{name:'7h',color:'h',value:7},{name:'8h',color:'h',value:8},{name:'9h',color:'h',value:9},{name:'Th',color:'h',value:10},{name:'Jh',color:'h',value:11},{name:'Qh',color:'h',value:21},{name:'Kh',color:'h',value:13},{name:'Ah',color:'h',value:14}];
+  deck+=[{name:'2s',color:'s',value:2},{name:'3s',color:'s',value:3},{name:'4s',color:'s',value:4},{name:'5s',color:'s',value:5},{name:'6s',color:'s',value:6},{name:'7s',color:'s',value:7},{name:'8s',color:'s',value:8},{name:'9s',color:'s',value:9},{name:'Ts',color:'s',value:10},{name:'Js',color:'s',value:11},{name:'Qs',color:'s',value:21},{name:'Ks',color:'s',value:13},{name:'As',color:'s',value:14}];
+  deck+=[{name:'2c',color:'c',value:2},{name:'3c',color:'c',value:3},{name:'4c',color:'c',value:4},{name:'5c',color:'c',value:5},{name:'6c',color:'c',value:6},{name:'7c',color:'c',value:7},{name:'8c',color:'c',value:8},{name:'9c',color:'c',value:9},{name:'Tc',color:'c',value:10},{name:'Jc',color:'c',value:11},{name:'Qc',color:'c',value:21},{name:'Kc',color:'c',value:13},{name:'Ac',color:'c',value:14}];
+
+// Declaration of functions
+
+function copy(array){
+    res=[];
+    for(i in array){
+        res.push(array[i]);
+    }
+    return res;
+}
+function sort_cards(cards) //Sort cards
+ {
+    cards_copy=copy(cards);
+    return cards_copy.sort(function (a,b){
+        return a.value - b.value;
+   });
+ }
+ 
+ function hands_list(hand,board){ // Return all combinations of 5 cards betwenn hand and board
+     list_cards=hand.concat(board);
+     result=[];
+     length=list_cards.length;
+     for( let i=0;i<length-1 ;i++){
+         for ( let j=i+1;j<length;j++){
+             temp=copy(list_cards);
+             temp.splice(temp.indexOf(list_cards[i]),1);
+             temp.splice(temp.indexOf(list_cards[j]),1);
+             result.push(sort_cards(temp));
+         }
+     }
+     return result;
+ }
+
+ function get_value(cards){ // return values of a card list
+    values=[]
+     for(i in cards){
+         values.push(cards[i].value);
+     }
+     return values;
+
+ }
+
+ function is_highest_cards(cards1,cards2){ //Return true if cards1 is strictly higher than cards2 ,else return false
+    values1=get_value(cards1);
+    values2=get_value(cards2);
+    if(values1==values2){
+        return true;
+    }
+    for(let i=cards1.length-1;i>-1;i--){
+        if (values1[i]>values2[i]){
+            return true;
+        }
+        else if (values2[i]>values1[i]){
+            return false;
+            
+        }
+    
+    }
+    return false;
+
+ }
+
+ function same_array(array1,array2){
+    if(array1.length!=array2.length){
+        return false
+    }
+    for(i in array1){
+        if(array1[i]!=array2[i]){
+            return false;
+        }
+
+    }
+    return true
+}
+
+ function find_highest_cards(cards_list){
+     maximum=[cards_list[0]];
+     for(j=1;j<cards_list.length;j++){
+        if(same_array(get_value(maximum[0]),get_value(cards_list[j]))){
+            maximum.push(cards_list[j])
+        }
+        else if(is_highest_cards(cards_list[j],maximum[0])){
+            maximum=[cards_list[j]]
+
+        }
+     }
+     return maximum;
+
+ }
+
+
+
+ function is_flush(cards){ // Return true if cards is a flush
+     ref=cards[0].color;
+     for(i in cards){
+        if (ref!=cards[i].color){
+            return false;
+        }
+     }
+     return true;
+ }
+
+ function is_straigth(cards){ // Return true if cards is a straigth
+    values=get_value(cards);
+    if(values[0]==2 && values[1]==3 && values[2]==4 && values[3]==5 && values[4]==14){
+        return true;
+    }
+    for( i=0;i<cards.length-1;i++){
+        if(values[i]+1!=values[i+1]){
+            return false;
+        }
+    }
+    return true;
+ }
+
+ function is_straigth_flush(cards){ // Return true if cards is a straigth flush
+     return is_straigth(cards) && is_flush(cards);
+ }
+
+ function unilist(list){ //Return true if every element of list is the same
+     ref=list[0]
+     for(i in list){
+         if(list[i]!=ref){
+             return false
+         }
+     }
+     return true
+ }
+
+ function is_quad(cards){
+     values=get_value(cards);
+     return unilist(values.slice(1,values.length)) || unilist(values.slice(0,values.length-1));
+ }
+
+ function is_full_house(cards){
+     values=get_value(cards);
+     return (unilist(values.slice(0,3)) && unilist(values.slice(3,values.length))) || (unilist(values.slice(0,2)) && unilist(values.slice(2,values.length)));
+ }
+
+ function is_trips(cards){
+    values=get_value(cards);
+    return unilist(values.slice(0,3)) || unilist(values.slice(1,4)) || unilist(values.slice(2,5));
+ }
+
+ function is_two_pairs(cards){
+    values=get_value(cards);
+    return (unilist(values.slice(0,2)) && unilist(values.slice(2,4))) || (unilist(values.slice(0,2)) && unilist(values.slice(3,5))) || (unilist(values.slice(1,3)) && unilist(values.slice(3,5)));
+ }
+
+ function is_pair(cards){
+    values=get_value(cards);
+    return unilist(values.slice(0,2)) || unilist(values.slice(1,3)) || unilist(values.slice(2,4)) || unilist(values.slice(3,5));
+
+ }
+
+function best_hand(hands){
+    list_straigth_flush=[];
+    list_quad=[];
+    list_full_house=[];
+    list_flush=[];
+    list_straigth=[];
+    list_trips=[];
+    list_two_pairs=[];
+    list_pair=[];
+    list_high_card=[];
+    for(i in hands){
+        combination=hands[i];
+        if(is_straigth_flush(combination)){
+            list_straigth_flush.push(combination);
+        }
+        else if(is_quad(combination)){
+            list_straigth_flush.push(combination);
+        }
+        else if(is_straigth_flush(combination)){
+            list_quad.push(combination);
+        }
+        else if(is_full_house(combination)){
+            list_full_house.push(combination);
+        }
+        else if(is_flush(combination)){
+            list_flush.push(combination);
+        }
+        else if(is_straigth(combination)){
+            list_straigth.push(combination);
+        }
+        else if(is_trips(combination)){
+            list_trips.push(combination);
+        }
+        else if(is_two_pairs(combination)){
+            list_two_pairs.push(combination);
+        }
+        else if(is_pair(combination)){
+            list_pair.push(combination);
+        }
+        else {
+            list_high_card.push(combination);
+
+        }
+
+    }
+    if(list_straigth_flush!=[]){
+        return 0;
+    }
+    if(list_quad!=[]){
+        return 0;
+    }
+    if(list_full_house!=[]){
+        return 0;
+    }
+    if(list_flush!=[]){
+        return 0;
+    }
+    if(list_straigth!=[]){
+        return 0;
+    }
+    if(list_trips!=[]){
+        return 0;
+    }
+    if(list_two_pairs!=[]){
+        return 0;
+    }
+    if(list_pair!=[]){
+        return 0;
+    }
+    if(list_high_card!=[]){
+        return 0;
+    }
+}
+
+ hand=[{name:'2h',color:'h',value:2},{name:'3h',color:'h',value:3}];
+ 
+board1=[ { name: 'As', color: 's', value: 14 },{ name: '5d', color: 'd', value: 5 },{ name: 'Kh', color: 'h', value: 13 },{ name: 'Qs', color: 's', value: 12 },{ name: 'Qd', color: 'd', value: 12 } ];
+board2=[ { name: 'As', color: 's', value: 14 },{ name: '4d', color: 'd', value: 4 },{ name: 'Kh', color: 'h', value: 13 },{ name: 'Qc', color: 'Qc', value: 12 },{ name: 'Qd', color: 'd', value: 12 } ];
+board3=[ { name: 'As', color: 's', value: 14 },{ name: 'Ad', color: 'd', value: 14 },{ name: 'Qh', color: 'h', value: 12 },{ name: 'Qc', color: 'Qc', value: 12 },{ name: 'Qd', color: 'd', value: 12 } ];
+
+combination1=[{color:'s'},{color:'d'},{color:'s'},{color:'s'},{color:'s'}];
+combination2=[{value:4,color:'s'},{value:5,color:'s'},{value:6,color:'s'},{value:8,color:'s'},{value:9,color:'s'}];
+
+toast=[sort_cards(board1),sort_cards(board2),sort_cards(board3)];
+
+console.log(find_highest_cards(toast));
+//console.log(toast);
 // The server listen on the 8080 port
 server.listen(8080);
