@@ -85,3 +85,27 @@ npm install --save circular-json
 
 
 
+### Plan
+
+Dans street:
+```js
+var timeout;
+
+//Quand on créer la room
+socket.emit('play')
+
+var idx;
+
+socket.on('play')
+{
+    armer(timeout);
+    socket[idx].emit('play');
+}
+
+socket.on('played')
+{
+    actualise(idx);
+    socket.emit('play');
+}
+```
+
