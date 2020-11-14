@@ -16,32 +16,37 @@ id_room[0] = 0;
 let rooms = [];
 
 // Load the page index.html
-app.get('/', function (req, res) {
+app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
 });
 
 // Load the page index.html
-app.get('/room', function (req, res) {
+app.get('/room', function(req, res) {
     res.sendFile(__dirname + '/client/room.html');
 });
 
 
+function listPlayers(room) {
+    let players = [];
+    for (let i = 0; i < room.players.length; i++)
+        players.push(room.players[i].pseudo);
+    return players;
+}
 
 
 // Handle a client connection
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', function(socket) {
     /* Listener to get the client pseudo and gives him all the
     rooms that already exist */
 
-    for (let i = 0; i < rooms.length; i++)
-    {
-        app.get('/'.concat(i.toString()), function (req, res) {
+    for (let i = 0; i < rooms.length; i++) {
+        app.get('/'.concat(i.toString()), function(req, res) {
             res.sendFile(__dirname + '/client/room.html');
         });
     }
 
 
-    socket.on('newClient', function (pseudo) {
+    socket.on('newClient', function(pseudo) {
         pseudo = ent.encode(pseudo);
         socket.pseudo = pseudo;
         for (let i = 0; i < rooms.length; i++)
@@ -50,7 +55,7 @@ io.sockets.on('connection', function (socket) {
 
     /* Listener to validate a room name (check that this room name is not in the
        array of rooms) and communicate it to the creator */
-    socket.on('validate-room-name', function (room) {
+    socket.on('validate-room-name', function(room) {
         for (let i = 0; i < rooms.length; i++)
             if (rooms[i].name == room.name) {
                 socket.emit('response-room-name', { response: false });
@@ -66,8 +71,9 @@ io.sockets.on('connection', function (socket) {
         socket.emit('new-room', { name: name, nbPlayers: players.length, maxPlayers: maxPlayers });
     });
 
+
     // Listener to add a client in a room in the array of rooms and communicate it to the other clients
-    socket.on('join-room', function (name) {
+    socket.on('join-room', function(name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
                 rooms[i].players.push(socket);
@@ -75,21 +81,21 @@ io.sockets.on('connection', function (socket) {
                     socket.broadcast.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
                     socket.emit('update-room', { name: name, nbPlayers: rooms[i].players.length });
 
-                }
-                else {
-					rooms[i].players.forEach(element => element.emit('redirect', 'room'));
+                } else {
+                    let players = listPlayers(rooms[i]);
+                    rooms[i].players.forEach(element => element.emit('redirect', { players: players }));
                     rooms.splice(i, 1);
                     socket.broadcast.emit('remove-room', { name: name });
                     socket.emit('remove-room', { name: name });
                 }
-                
+
                 return;
             }
         }
     });
 
     // Listener to remove a client in a room in the array of rooms and communicate it to the other clients
-    socket.on('leave-room', function (name) {
+    socket.on('leave-room', function(name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
                 let index = rooms[i].players.indexOf(socket);
@@ -106,7 +112,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     // Listener to remove a room from the array of rooms and communicate to the other clients
-    socket.on('destroy-room', function (name) {
+    socket.on('destroy-room', function(name) {
         for (let i = 0; i < rooms.length; i++) {
             if (rooms[i].name == name) {
                 rooms.splice(i, 1);
@@ -120,7 +126,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     // Listener to remove a client in a room in the array of rooms because of a disconnection and communicate it to the other clients
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function() {
         for (let i = 0; i < rooms.length; i++) {
             let index = rooms[i].players.indexOf(socket);
             if (index > -1) {

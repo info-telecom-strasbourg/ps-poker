@@ -32,24 +32,25 @@ function validateRoom() {
     var inputRoom = document.getElementById('room-modal-name');
     var maxPlayers = document.getElementById('room-modal-nb').value;
 
-    if(inputRoom.value.length < 2)
-      document.getElementById('room-modal-name-error').style.display = "block";
+    if (inputRoom.value.length < 2)
+        document.getElementById('room-modal-name-error').style.display = "block";
     else {
-      document.getElementById('room-modal-name-error').style.display = "none";
-      socket.emit('validate-room-name', {name: inputRoom.value,
-        nbPlayer: maxPlayers});
+        document.getElementById('room-modal-name-error').style.display = "none";
+        socket.emit('validate-room-name', {
+            name: inputRoom.value,
+            nbPlayer: maxPlayers
+        });
     }
 }
 
 // Listener to validate a room name if it can be used, emit a signal to communicate that the room
 // is created and puts the client on hold
-socket.on('response-room-name', function (data) {
+socket.on('response-room-name', function(data) {
     if (!data.response)
-        document.getElementById('room-modal-name-error2').style.display="block";
-    else
-    {
-      document.getElementById('room-modal').style.display = "none";
-      waitingRoom(data.nbPlayers, data.maxPlayers);
+        document.getElementById('room-modal-name-error2').style.display = "block";
+    else {
+        document.getElementById('room-modal').style.display = "none";
+        waitingRoom(data.nbPlayers, data.maxPlayers);
     }
 })
 
@@ -98,7 +99,7 @@ function leaveRoom() {
 
 
 // Listener to add a room in the list of rooms if a new room has been created
-socket.on('new-room', function (data) {
+socket.on('new-room', function(data) {
     addRoom(data.name, data.nbPlayers, data.maxPlayers);
     roomName = data.name;
 })
@@ -128,14 +129,13 @@ function joinRoom(name) {
     if (nbPlayers + 1 < maxPlayers) {
         updateRoom(name, parseInt(nbPlayers) + 1);
         waitingRoom(nbPlayers + 1, maxPlayers);
-    }
-    else
+    } else
         removeRoom(name);
     socket.emit('join-room', name);
 }
 
 // Listerner to update a room if someone entered or left a room
-socket.on('update-room', function (data) {
+socket.on('update-room', function(data) {
     updateRoom(data.name, data.nbPlayers);
 })
 
@@ -153,7 +153,7 @@ function updateRoom(name, nbPlayers) {
 }
 
 // Listerner to supress a room in the list of rooms
-socket.on('remove-room', function (data) {
+socket.on('remove-room', function(data) {
     removeRoom(data.name);
 })
 
@@ -169,12 +169,10 @@ function removeRoom(name) {
     $("#rooms #" + correctedName).remove();
 }
 
-socket.on('start-game', function (data) {
-    document.location.href="/".concat(data.id.toString());
-});
 
-socket.on('redirect', function(destination){
-	window.location.href = destination;
+
+socket.on('redirect', function(players) {
+    window.location.href = "room";
 });
 
 
