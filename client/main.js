@@ -175,7 +175,25 @@ socket.on('redirect', function(players) {
     window.location.href = "room";
 });
 
+function checkButton() {
+    socket.emit('do_check');
+}
 
+function betButton() {
+    socket.emit('do_bet');
+}
+
+function passButton() {
+    socket.emit('do_pass');
+}
+
+function followButton() {
+    socket.emit('do_follow');
+}
+
+function risingButton() {
+    socket.emit('do_rising');
+}
 
 /**
  * Convert all "\n" or "\r\n" or "\r" to "<br>" in a string.
