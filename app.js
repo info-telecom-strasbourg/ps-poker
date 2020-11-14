@@ -14,6 +14,7 @@ id_room[0] = 0;
 
 // Array of rooms
 let rooms = [];
+var dealer;
 
 // Load the page index.html
 app.get('/', function(req, res) {
@@ -87,12 +88,9 @@ io.sockets.on('connection', function(socket) {
                     rooms.splice(i, 1);
                     socket.broadcast.emit('remove-room', { name: name });
                     socket.emit('remove-room', { name: name });
-                    Player1 = new Player('Elnegrillo', 100, 0, false);
-                    Player2 = new Player('Isildur1', 100, 1, false);
-                    Player3 = new Player('CrownUpGuy', 100, 2, false);
-                    Player4 = new Player('durrrr', 100, 3, false);
-                    Player5 = new Player('Alexonmoon', 100, 4, false);
-                    dealer = new Environment([Player1, Player2, Player3, Player4, Player5], deck_cards, 0.5, 1);
+                    let players_in_game = [];
+                    players.forEach((element, index) => players_in_game.push(new Player(element, 100, index, false)));
+                    dealer = new Environment(players_in_game, deck_cards, 0.5, 1);
                 }
 
                 return;
@@ -149,23 +147,23 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on('do_check', function() {
-        // check
+        checking(dealer, dealer.players.indexOf(socket.pseudo));
     });
 
-    socket.on('do_bet', function() {
-        // bet
+    socket.on('do_bet', function(amount) {
+        betting(dealer, dealer.players.indexOf(socket.pseudo), amount);
     });
 
     socket.on('do_pass', function() {
-        // pass
+        folding(dealer, dealer.players.indexOf(socket.pseudo));
     });
 
     socket.on('do_follow', function() {
-        // follow
+        //TODO calling 
     });
 
-    socket.on('do_rising', function() {
-        // rising
+    socket.on('do_rising', function(amount) {
+        betting(dealer, dealer.players.indexOf(socket.pseudo), amount)
     });
 
 
@@ -529,6 +527,9 @@ function checking(env, idx) {
     env.players[idx].as_played = true;
 }
 
+function folding(env, idx) {
+    env.players[idx].is_playing = false;
+}
 
 function action(env, idx) {
     player = env.players[idx];
@@ -609,21 +610,14 @@ function play(env) {
 // combination1 = [{ color: 's' }, { color: 'd' }, { color: 's' }, { color: 's' }, { color: 's' }];
 // combination2 = [{ value: 4, color: 's' }, { value: 5, color: 's' }, { value: 6, color: 's' }, { value: 8, color: 's' }, { value: 9, color: 's' }];
 
-<<
-<<
-<< < HEAD
+
 // toast = [sort_cards(board1), sort_cards(board2), sort_cards(board3)];
 
 // //console.log(best_hand(hands_list(hand,board3)));
 // console.log();
-    ===
-    ===
-    =
-    toast = [sort_cards(board1), sort_cards(board2), sort_cards(board3)];
-draw(dealer);
+// toast = [sort_cards(board1), sort_cards(board2), sort_cards(board3)];
+// draw(dealer);
 //console.log(best_hand(hands_list(hand,board3)));
-console.log(dealer.board); >>>
->>>
-> 7 f8a7b7edef2387712b7c15a7fd0f4eba09c0fb9
+// console.log(dealer.board);
 // The server listen on the 8080 port
 server.listen(8080);

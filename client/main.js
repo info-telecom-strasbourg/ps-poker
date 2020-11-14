@@ -179,8 +179,8 @@ function checkButton() {
     socket.emit('do_check');
 }
 
-function betButton() {
-    socket.emit('do_bet');
+function betButton(amount) {
+    socket.emit('do_bet', amount);
 }
 
 function passButton() {
@@ -191,8 +191,8 @@ function followButton() {
     socket.emit('do_follow');
 }
 
-function risingButton() {
-    socket.emit('do_rising');
+function risingButton(amount) {
+    socket.emit('do_rising', amount);
 }
 
 /**
