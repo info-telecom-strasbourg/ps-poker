@@ -521,7 +521,15 @@ function action(env,idx){
     player=env.players[idx];
 
 }
+
+function draw(env){
+    env.board.push(env.current_deck.pop);
+}
+
 function street(env,starting_position,street_idx){
+    if(street_idx>0){
+        draw(env);
+    }
     for(i in env.players.length){
         idx=i+starting_position;
         if(env.players[idx].is_playing && !(env.players[idx].is_allin)){
@@ -530,9 +538,6 @@ function street(env,starting_position,street_idx){
     }
 }
 
-function draw(env){
-    env.board.push(env.current_deck.pop);
-}
 
 function play(env){
     env.board=[];
@@ -594,8 +599,8 @@ combination1=[{color:'s'},{color:'d'},{color:'s'},{color:'s'},{color:'s'}];
 combination2=[{value:4,color:'s'},{value:5,color:'s'},{value:6,color:'s'},{value:8,color:'s'},{value:9,color:'s'}];
 
 toast=[sort_cards(board1),sort_cards(board2),sort_cards(board3)];
-
+draw(dealer);
 //console.log(best_hand(hands_list(hand,board3)));
-console.log();
+console.log(dealer.board);
 // The server listen on the 8080 port
 server.listen(8080);
