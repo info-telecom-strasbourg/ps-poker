@@ -81,7 +81,7 @@ class Joueur:#Classe joueur
 
 
 
-
+npm install --save circular-json
 
 
 

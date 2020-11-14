@@ -2,7 +2,11 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheganization!
+
+    Here are some quick tips for a first-time organization member.
+    
+        Use the switch context button in the upper left corner of this page to switch between your personal context (HugoLaullier) and organizatiet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="room.css">
 
 
@@ -37,7 +41,7 @@
 </body>
 
 <script type="text/javascript">
-    var nbPlayers = 4;
+    var nbPlayers = 2;
     var widthCard = 71,
         heightCard = 96;
     var cardsContent = document.getElementById('cards-content');
@@ -51,17 +55,30 @@
         drawCard(x, y, card2, 15);
     }
 
+    function drawMiddleCards() {
+        drawCard(38, 46, "back");
+        drawCard(44, 46, "back");
+        drawCard(50, 46, "back");
+        drawCard(56, 46, "back");
+        drawCard(62, 46, "back");
+    }
+
+    if (nbPlayers == 2) {
+        drawDoubleCards(50, 12, "back", "back");
+        drawDoubleCards(50, 80, "Ah", "As");
+
+        drawMiddleCards();
+    }
+
+
+
     if (nbPlayers == 4) {
         drawDoubleCards(50, 12, "back", "back");
         drawDoubleCards(50, 80, "Ah", "As");
         drawDoubleCards(12, 46, "back", "back");
         drawDoubleCards(88, 46, "back", "back");
 
-        drawCard(38, 46, "back");
-        drawCard(44, 46, "back");
-        drawCard(50, 46, "back");
-        drawCard(56, 46, "back");
-        drawCard(62, 46, "back");
+        drawMiddleCards();
     }
 </script>
 
