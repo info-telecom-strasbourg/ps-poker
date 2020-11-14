@@ -177,7 +177,7 @@ class Player {
 
 // Declaration of functions
 
-function copy(array){
+function copy(array){ //Return a copy of array in res
     res=[];
     for(i in array){
         res.push(array[i]);
@@ -236,7 +236,7 @@ function sort_cards(cards) //Sort cards
 
  }
 
- function same_array(array1,array2){
+ function same_array(array1,array2){//Return true is array1 and array2 are the same
     if(array1.length!=array2.length){
         return false
     }
@@ -249,7 +249,7 @@ function sort_cards(cards) //Sort cards
     return true
 }
 
- function find_highest_cards(cards_list){
+ function find_highest_cards(cards_list){//Return the highest hand in terms of 
      maximum=[cards_list[0]];
      for(j=1;j<cards_list.length;j++){
         if(same_array(get_value(maximum[0]),get_value(cards_list[j]))){
@@ -264,7 +264,7 @@ function sort_cards(cards) //Sort cards
 
  }
 
- function find_best_straigth(cards_list){
+ function find_best_straigth(cards_list){//Return the best straigth
     maximum=[cards_list[0]];  
         for(j=1;j<cards_list.length;j++){
         if(same_array(get_value(maximum[0]),get_value(cards_list[j]))){
@@ -509,13 +509,19 @@ function betting(env,idx,amount){
     env.players[idx].bet=env.players[idx].bet+size_bet;
     env.pot=env.pot+size_bet;
     env.players[idx].stack=env.players[idx].stack-size_bet;
+    env.players[idx].as_played=true;
 }
+
+function checking(env,idx){
+    env.players[idx].as_played=true;
+}
+
 
 function action(env,idx){
     player=env.players[idx];
 
 }
-function street(env,starting_position){
+function street(env,starting_position,street_idx){
     for(i in env.players.length){
         idx=i+starting_position;
         if(env.players[idx].is_playing && !(env.players[idx].is_allin)){
@@ -524,7 +530,12 @@ function street(env,starting_position){
     }
 }
 
+function draw(env){
+    env.board.push(env.current_deck.pop);
+}
+
 function play(env){
+    env.board=[];
     env.pot=env.side_pot;
     env.side_pot=0;
     env.btn=(env.btn+1)%(env.players.length);
@@ -533,6 +544,7 @@ function play(env){
         env.players[i].is_allin=false;
         env.players[i].is_as_played=false;
         env.players[i].gain_pot=0;
+        env.players[i].bet=0;
         if(env.players[i].position==env.btn){
             env.players[i].btn=true;
         }
